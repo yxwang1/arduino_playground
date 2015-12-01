@@ -13,13 +13,13 @@ NewPing sonar(TRIGGER_PIN, ECHO_PIN, MAX_DISTANCE); // NewPing setup of pins and
 //See Low Level for Command Definitions
  
 //Define Pins
-int enableA = 2;
-int pinA1 = 1;
-int pinA2 = 0;
+int enableA = 10;
+int pinA1 = 8;
+int pinA2 = 7;
  
-int enableB = 7;
-int pinB1 = 6;
-int pinB2 = 5;
+int enableB = 5;
+int pinB1 = 4;
+int pinB2 = 3;
 
 // servo param
 int pinServo = 9;
@@ -30,7 +30,7 @@ int change = 1;
 //Define Run variable
 boolean run;
 void setup() {
-/* 
+ 
  pinMode(enableA, OUTPUT);
  pinMode(pinA1, OUTPUT);
  pinMode(pinA2, OUTPUT);
@@ -40,7 +40,7 @@ void setup() {
  pinMode(pinB2, OUTPUT);
  
  run = true;
-*/
+
  //Servo
  servo1.attach(pinServo); 
  Serial.begin(9600);
@@ -53,7 +53,7 @@ void loop() {
   delay(50);
   int distance = detectObstacleDistance();
   delay(50);
- /* if(run)
+  if(run)
  {
  
  delay(2000);
@@ -82,7 +82,7 @@ void loop() {
  
  run = true;
  }
- */
+ 
 }
 
 // detect obstacle distance
