@@ -25,10 +25,14 @@ int pinB2 = 3;
 int pinServo = 9;
 Servo servo1;
 int degree = 0;
-int change = 1;
+int change = 15;
 
 //Define Run variable
-boolean run;
+int distanceOnRight = 50;
+int distanceInFront = 50;
+int distanceOnLeft = 50;
+boolean backwardMode = false;
+
 void setup() {
  
  pinMode(enableA, OUTPUT);
@@ -39,55 +43,47 @@ void setup() {
  pinMode(pinB1, OUTPUT);
  pinMode(pinB2, OUTPUT);
  
- run = true;
+
 
  //Servo
  servo1.attach(pinServo); 
  Serial.begin(9600);
 
+ Serial.println("Enable motors");
+ enableMotors();
 }
  
 //command sequence
 void loop() {
  
-  delay(50);
-  int distance = detectObstacleDistance();
-  delay(50);
-  if(run)
- {
- 
- delay(2000);
- Serial.println("Enable motors");
- enableMotors();
+  detectObstacleDistance();
 
- Serial.println("Forward 1000");
- forward(1000);
- coast(500);
-
- Serial.println("Backward 1000");
- backward(1500);
- coast(500);
-
- Serial.println("Forward 500");
- forward(500);
- brake(500);
-
- Serial.println("TurnLeft 500");
- turnLeft(500);
-  Serial.println("TurnRight 500");
- turnRight(500);
-
- Serial.println("Disable motors");
- disableMotors();
- 
- run = true;
- }
+  if (!backwardMode && distanceInFront > 20) {
+    Serial.println("Forward ");
+    forward();
+    coast();
+  } else if (distanceOnLeft > 20) {
+     Serial.println("TurnLeft");
+    turnLeft();
+  } else if (distanceOnRight > 20) {
+     Serial.println("TurnRight");
+    turnRight();
+  } else {
+     Serial.println("Backward");
+    backward();
+    coast();
+    backwardMode = true;
+  }
+  
+  delay(200);
+ //Serial.println("Disable motors");
+ // disableMotors();
  
 }
 
 // detect obstacle distance
 
-int detectObstacleDistance() {
+void detectObstacleDistance() {
     degree = degree + change;
   if (degree >= 180) {
     change = -change;
@@ -104,7 +100,18 @@ int detectObstacleDistance() {
   Serial.print((String)str); // Send ping, get distance in cm and print result (0 = outside set distance range)
   Serial.println("cm");
 
-  return distance; 
+  
+  if (degree < 61 ) {
+    //if (distance != 0)
+      distanceOnLeft = distance;
+  } else if(degree < 121) {
+    //if (distance != 0)
+      distanceInFront = distance;
+  } else {
+    //if (distance != 0)
+      distanceOnRight = distance;
+  }
+
 }
  
 //Define Low Level H-Bridge Commands
@@ -196,44 +203,44 @@ void disableMotors()
  motorBOff();
 }
  
-void forward(int time)
+void forward()
 {
  motorAForward();
  motorBForward();
- delay(time);
+
 }
  
-void backward(int time)
+void backward()
 {
  motorABackward();
  motorBBackward();
- delay(time);
+ 
 }
  
-void turnLeft(int time)
+void turnLeft()
 {
  motorABackward();
  motorBForward();
- delay(time);
+ 
 }
  
-void turnRight(int time)
+void turnRight()
 {
  motorAForward();
  motorBBackward();
- delay(time);
+ 
 }
  
-void coast(int time)
+void coast()
 {
  motorACoast();
  motorBCoast();
- delay(time);
+ 
 }
  
-void brake(int time)
+void brake()
 {
  motorABrake();
  motorBBrake();
- delay(time);
+ 
 }
