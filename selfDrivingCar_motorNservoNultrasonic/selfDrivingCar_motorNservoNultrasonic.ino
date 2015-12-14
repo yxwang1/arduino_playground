@@ -11,6 +11,7 @@
 NewPing sonar(TRIGGER_PIN, ECHO_PIN, MAX_DISTANCE); // NewPing setup of pins and maximum distance.
 
 //See Low Level for Command Definitions
+
  
 //Define Pins
 int enableA = 10;
@@ -55,27 +56,30 @@ void setup() {
  
 //command sequence
 void loop() {
+
  
   detectObstacleDistance();
 
   if (!backwardMode && distanceInFront > 20) {
     Serial.println("Forward ");
     forward();
-    coast();
   } else if (distanceOnLeft > 20) {
      Serial.println("TurnLeft");
     turnLeft();
+    backwardMode = false;
   } else if (distanceOnRight > 20) {
      Serial.println("TurnRight");
     turnRight();
+    backwardMode = false;
   } else {
      Serial.println("Backward");
     backward();
-    coast();
+    //coast();
     backwardMode = true;
   }
-  
-  delay(200);
+
+  delay(500);
+    coast();
  //Serial.println("Disable motors");
  // disableMotors();
  
@@ -89,29 +93,34 @@ void detectObstacleDistance() {
     change = -change;
   
   }
+
   if (degree <= 0) {
     change = -change;
-
+  
   }
+
   servo1.write(degree);  
   Serial.print("Ping: ");
  int distance = sonar.ping_cm();
-  String str = String("degree: ") + degree + String(" distance: ") + distance;
-  Serial.print((String)str); // Send ping, get distance in cm and print result (0 = outside set distance range)
-  Serial.println("cm");
 
+  if (distance == 0) {
+    distance = MAX_DISTANCE;
+  }
   
-  if (degree < 61 ) {
-    //if (distance != 0)
+  if (degree < 46 ) {
       distanceOnLeft = distance;
-  } else if(degree < 121) {
-    //if (distance != 0)
+  } else if(degree < 136) {
       distanceInFront = distance;
   } else {
-    //if (distance != 0)
       distanceOnRight = distance;
   }
 
+  String str = String("degree: ") + degree + String(" distanceOnLeft: ") + distanceOnLeft 
+  + String(" distanceInFront: ") + distanceInFront 
+  + String(" distanceOnRight: ") + distanceOnRight ;
+  Serial.print((String)str); // Send ping, get distance in cm and print result (0 = outside set distance range)
+  Serial.println("cm");
+ 
 }
  
 //Define Low Level H-Bridge Commands
