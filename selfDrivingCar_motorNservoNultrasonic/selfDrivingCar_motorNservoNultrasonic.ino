@@ -14,7 +14,7 @@ NewPing sonar(TRIGGER_PIN, ECHO_PIN, MAX_DISTANCE); // NewPing setup of pins and
 
  
 //Define Pins
-int enableA = 10;
+int enableA = 6;
 int pinA1 = 8;
 int pinA2 = 7;
  
@@ -26,7 +26,7 @@ int pinB2 = 3;
 int pinServo = 9;
 Servo servo1;
 int degree = 0;
-int change = 15;
+int change = 20;
 
 //Define Run variable
 int distanceOnRight = 50;
@@ -51,7 +51,7 @@ void setup() {
  Serial.begin(9600);
 
  Serial.println("Enable motors");
- enableMotors();
+ enableMotors(80);
 }
  
 //command sequence
@@ -77,9 +77,9 @@ void loop() {
     //coast();
     backwardMode = true;
   }
-
-  delay(500);
-    coast();
+  
+  delay(100);
+  coast();
  //Serial.println("Disable motors");
  // disableMotors();
  
@@ -107,9 +107,9 @@ void detectObstacleDistance() {
     distance = MAX_DISTANCE;
   }
   
-  if (degree < 46 ) {
+  if (degree < 60 ) {
       distanceOnLeft = distance;
-  } else if(degree < 136) {
+  } else if(degree < 120) {
       distanceInFront = distance;
   } else {
       distanceOnRight = distance;
@@ -126,14 +126,14 @@ void detectObstacleDistance() {
 //Define Low Level H-Bridge Commands
  
 //enable motors
-void motorAOn()
+void motorAOn(int s)
 {
- digitalWrite(enableA, HIGH);
+ analogWrite(enableA, s);
 }
  
-void motorBOn()
+void motorBOn(int s)
 {
- digitalWrite(enableB, HIGH);
+ analogWrite(enableB, s);
 }
  
  //disable motors
@@ -200,10 +200,10 @@ void motorBBrake()
  
 //Define High Level Commands
  
-void enableMotors()
+void enableMotors(int s)
 {
- motorAOn();
- motorBOn();
+ motorAOn(s);
+ motorBOn(s);
 }
  
 void disableMotors()
