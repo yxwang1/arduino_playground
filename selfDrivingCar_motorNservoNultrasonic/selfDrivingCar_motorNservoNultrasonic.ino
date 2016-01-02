@@ -34,6 +34,10 @@ int distanceInFront = 50;
 int distanceOnLeft = 50;
 boolean backwardMode = false;
 int minDistance = 30;
+//int turnSpeed = 40;
+int forwardSpeed = 100;
+
+long servoFlag = 0;
 
 void setup() {
  
@@ -44,47 +48,46 @@ void setup() {
  pinMode(enableB, OUTPUT);
  pinMode(pinB1, OUTPUT);
  pinMode(pinB2, OUTPUT);
- 
-
 
  //Servo
  servo1.attach(pinServo); 
  Serial.begin(9600);
 
  Serial.println("Enable motors");
- enableMotors(80);
+ enableMotors(forwardSpeed);
 }
  
 //command sequence
 void loop() {
-
- 
+  servoFlag++;
+  
   detectObstacleDistance();
 
   if (!backwardMode && distanceInFront > minDistance) {
     Serial.println("Forward ");
     forward();
-    delay(100);
+    delay(25);
     coast();
-  } else if (distanceOnLeft > minDistance) {
-     Serial.println("TurnLeft");
-     brake();
-    turnLeft();
-    delay(50);
-    coast();
-    backwardMode = false;
   } else if (distanceOnRight > minDistance) {
      Serial.println("TurnRight");
      brake();
     turnRight();
-    delay(50);
+    delay(15);
     coast();
     backwardMode = false;
+  } else if (distanceOnLeft > minDistance) {
+     Serial.println("TurnLeft");
+     brake();
+    turnLeft();
+    delay(15);
+    coast();
+    backwardMode = false;
+
   } else {
      Serial.println("Backward");
      brake();
     backward();
-    delay(100);
+    delay(25);
     coast();
     backwardMode = true;
   }
@@ -98,6 +101,8 @@ void loop() {
 // detect obstacle distance
 
 void detectObstacleDistance() {
+  if (servoFlag % 4 != 0) return;
+  
     degree = degree + change;
   if (degree >= 180) {
     change = -change;
@@ -120,12 +125,13 @@ void detectObstacleDistance() {
   
   if (degree < 20 ) {
       distanceOnLeft = distance;
-  } else if(degree > 60 && degree < 110) {
+  } else if(degree >= 40 && degree < 120) {
       distanceInFront = distance;
-  } else if(degree > 140)  {
+  } else if(degree >= 150)  {
       distanceOnRight = distance;
   } else {
-    Serial.println("ignored");
+    String str = String("degree: ") + degree + String(" ignored");
+    Serial.println((String) str);
     return;
   }
 
