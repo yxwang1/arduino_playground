@@ -33,6 +33,7 @@ int distanceOnRight = 50;
 int distanceInFront = 50;
 int distanceOnLeft = 50;
 boolean backwardMode = false;
+int minDistance = 30;
 
 void setup() {
  
@@ -60,26 +61,35 @@ void loop() {
  
   detectObstacleDistance();
 
-  if (!backwardMode && distanceInFront > 20) {
+  if (!backwardMode && distanceInFront > minDistance) {
     Serial.println("Forward ");
     forward();
-  } else if (distanceOnLeft > 20) {
+    delay(100);
+    coast();
+  } else if (distanceOnLeft > minDistance) {
      Serial.println("TurnLeft");
+     brake();
     turnLeft();
+    delay(50);
+    coast();
     backwardMode = false;
-  } else if (distanceOnRight > 20) {
+  } else if (distanceOnRight > minDistance) {
      Serial.println("TurnRight");
+     brake();
     turnRight();
+    delay(50);
+    coast();
     backwardMode = false;
   } else {
      Serial.println("Backward");
+     brake();
     backward();
-    //coast();
+    delay(100);
+    coast();
     backwardMode = true;
   }
   
-  delay(100);
-  coast();
+
  //Serial.println("Disable motors");
  // disableMotors();
  
@@ -105,14 +115,18 @@ void detectObstacleDistance() {
 
   if (distance == 0) {
     distance = MAX_DISTANCE;
+    return;
   }
   
-  if (degree < 60 ) {
+  if (degree < 20 ) {
       distanceOnLeft = distance;
-  } else if(degree < 120) {
+  } else if(degree > 60 && degree < 110) {
       distanceInFront = distance;
-  } else {
+  } else if(degree > 140)  {
       distanceOnRight = distance;
+  } else {
+    Serial.println("ignored");
+    return;
   }
 
   String str = String("degree: ") + degree + String(" distanceOnLeft: ") + distanceOnLeft 
