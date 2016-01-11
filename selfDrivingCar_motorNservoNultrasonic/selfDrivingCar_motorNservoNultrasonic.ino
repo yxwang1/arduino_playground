@@ -26,7 +26,7 @@ int pinB2 = 3;
 int pinServo = 9;
 Servo servo1;
 int degree = 0;
-int change = 20;
+int change = 10;
 
 //Define Run variable
 int distanceOnRight = 50;
@@ -35,7 +35,7 @@ int distanceOnLeft = 50;
 boolean backwardMode = false;
 int minDistance = 30;
 //int turnSpeed = 40;
-int forwardSpeed = 100;
+int forwardSpeed = 85;
 
 long servoFlag = 0;
 
@@ -55,41 +55,47 @@ void setup() {
 
  Serial.println("Enable motors");
  enableMotors(forwardSpeed);
+
+ scanDelay(1000);
 }
  
 //command sequence
 void loop() {
-  servoFlag++;
-  
-  detectObstacleDistance();
 
   if (!backwardMode && distanceInFront > minDistance) {
     Serial.println("Forward ");
     forward();
-    delay(25);
+    scanDelay(50);
     coast();
   } else if (distanceOnRight > minDistance) {
      Serial.println("TurnRight");
      brake();
+     scanDelay(50);
     turnRight();
-    delay(15);
+    clearDistances(1);
+    scanDelay(150);
     coast();
     backwardMode = false;
+    
   } else if (distanceOnLeft > minDistance) {
      Serial.println("TurnLeft");
      brake();
+     scanDelay(50);
     turnLeft();
-    delay(15);
+    clearDistances(-1);
+    scanDelay(150);
     coast();
     backwardMode = false;
-
+    
   } else {
      Serial.println("Backward");
      brake();
     backward();
-    delay(25);
+    clearDistances(0);
+    scanDelay(100);
     coast();
     backwardMode = true;
+   
   }
   
 
@@ -98,10 +104,33 @@ void loop() {
  
 }
 
+void scanDelay(long milli) {
+  long i = 0;
+  while (i < milli) {
+    delay(50);
+    detectObstacleDistance();
+    i = i + 50;
+  }
+}
+
+void clearDistances(int turnDirection) {
+  if (turnDirection == -1) { // turn left
+    distanceOnRight = distanceInFront;
+    distanceInFront = distanceOnLeft;
+    distanceOnLeft = MAX_DISTANCE;
+  } else if (turnDirection == 1) { // turn right
+    distanceOnLeft = distanceInFront;
+    distanceInFront = distanceOnRight;
+    distanceOnRight = MAX_DISTANCE;
+  } else {
+    distanceInFront = distanceInFront+2;
+    distanceOnLeft = MAX_DISTANCE;
+    distanceOnRight = MAX_DISTANCE;
+  }
+}
 // detect obstacle distance
 
 void detectObstacleDistance() {
-  if (servoFlag % 4 != 0) return;
   
     degree = degree + change;
   if (degree >= 180) {
@@ -123,12 +152,18 @@ void detectObstacleDistance() {
     return;
   }
   
-  if (degree < 20 ) {
-      distanceOnLeft = distance;
-  } else if(degree >= 40 && degree < 120) {
-      distanceInFront = distance;
-  } else if(degree >= 150)  {
+  if (degree < 60 ) {
+    if (distance < distanceOnRight) {
       distanceOnRight = distance;
+    }
+  } else if(degree >= 70 && degree < 140) {
+    if (distance < distanceInFront) {
+      distanceInFront = distance;
+    }
+  } else if(degree > 160)  {
+      if (distance < distanceOnLeft) {
+        distanceOnLeft = distance;
+      }
   } else {
     String str = String("degree: ") + degree + String(" ignored");
     Serial.println((String) str);
@@ -248,16 +283,14 @@ void backward()
  
 void turnLeft()
 {
- motorABackward();
- motorBForward();
- 
+ motorAForward();
+ motorBBackward();
 }
  
 void turnRight()
 {
- motorAForward();
- motorBBackward();
- 
+  motorABackward();
+  motorBForward();
 }
  
 void coast()
