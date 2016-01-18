@@ -10,6 +10,9 @@
 #define MAX_DISTANCE 200 // Maximum distance we want to ping for (in centimeters). Maximum sensor distance is rated at 400-500cm.
 NewPing sonar(TRIGGER_PIN, ECHO_PIN, MAX_DISTANCE); // NewPing setup of pins and maximum distance.
 
+//infrared params
+#define INFRARED_OUT_PIN A0
+
 //See Low Level for Command Definitions
 
  
@@ -62,6 +65,8 @@ void setup() {
 //command sequence
 void loop() {
 
+  //Serial.println(analogRead(INFRARED_OUT_PIN));
+
   if (!backwardMode && distanceInFront > minDistance) {
     Serial.println("Forward ");
     forward();
@@ -73,7 +78,7 @@ void loop() {
      scanDelay(50);
     turnRight();
     clearDistances(1);
-    scanDelay(150);
+    scanDelay(100);
     coast();
     backwardMode = false;
     
@@ -83,7 +88,7 @@ void loop() {
      scanDelay(50);
     turnLeft();
     clearDistances(-1);
-    scanDelay(150);
+    scanDelay(100);
     coast();
     backwardMode = false;
     
@@ -109,6 +114,7 @@ void scanDelay(long milli) {
   while (i < milli) {
     delay(50);
     detectObstacleDistance();
+    detectWithInfrared();
     i = i + 50;
   }
 }
@@ -130,6 +136,13 @@ void clearDistances(int turnDirection) {
 }
 // detect obstacle distance
 
+void detectWithInfrared() {
+  int infraredDistance = analogRead(INFRARED_OUT_PIN);
+  if (infraredDistance < 100) {
+    distanceInFront = 3;
+  }
+}
+  
 void detectObstacleDistance() {
   
     degree = degree + change;
