@@ -11,7 +11,10 @@
 NewPing sonar(TRIGGER_PIN, ECHO_PIN, MAX_DISTANCE); // NewPing setup of pins and maximum distance.
 
 //infrared params
-#define INFRARED_OUT_PIN A0
+#define INFRARED_L_OUT_PIN A0  //left
+#define INFRARED_F1_OUT_PIN A1  //front 1
+#define INFRARED_F2_OUT_PIN A2  //front 2
+#define INFRARED_R_OUT_PIN A3  //right
 
 //See Low Level for Command Definitions
 
@@ -137,9 +140,21 @@ void clearDistances(int turnDirection) {
 // detect obstacle distance
 
 void detectWithInfrared() {
-  int infraredDistance = analogRead(INFRARED_OUT_PIN);
-  if (infraredDistance < 100) {
+  int infraredDistanceLeft = analogRead(INFRARED_L_OUT_PIN);
+  int infraredDistanceFront1 = analogRead(INFRARED_F1_OUT_PIN);
+  int infraredDistanceFront2 = analogRead(INFRARED_F2_OUT_PIN);
+  int infraredDistanceRight = analogRead(INFRARED_R_OUT_PIN);
+  if (infraredDistanceFront1 < 100) {
     distanceInFront = 3;
+  }
+  if (infraredDistanceFront2 < 100) {
+    distanceInFront = 3;
+  }
+  if (infraredDistanceLeft < 100) {
+    distanceOnLeft = 3;
+  }
+  if (infraredDistanceRight < 100) {
+    distanceOnRight = 3;
   }
 }
   
