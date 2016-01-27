@@ -1,25 +1,21 @@
 // Motor control based on Yu Hin Hau
 // Robotic Car via H-Bridge (L298)
 
-#include <Servo.h>
-#include <NewPing.h>
+#include <Servo.h> // servo motor library
+#include <NewPing.h> // ultrasonic sensor library
 
 // ultrasonic params
-#define TRIGGER_PIN  12  // Arduino pin tied to trigger pin on the ultrasonic sensor.
-#define ECHO_PIN     11  // Arduino pin tied to echo pin on the ultrasonic sensor.
+#define ULTRASONIC_TRIGGER_PIN  12  // Arduino pin tied to trigger pin on the ultrasonic sensor.
+#define ULTRASONIC_ECHO_PIN     11  // Arduino pin tied to echo pin on the ultrasonic sensor.
 #define MAX_DISTANCE 200 // Maximum distance we want to ping for (in centimeters). Maximum sensor distance is rated at 400-500cm.
-NewPing sonar(TRIGGER_PIN, ECHO_PIN, MAX_DISTANCE); // NewPing setup of pins and maximum distance.
+NewPing sonar(ULTRASONIC_TRIGGER_PIN, ULTRASONIC_ECHO_PIN, MAX_DISTANCE); // NewPing setup of pins and maximum distance.
 
 //infrared params
-#define INFRARED_L_OUT_PIN A0  //left
 #define INFRARED_F1_OUT_PIN A1  //front 1
 #define INFRARED_F2_OUT_PIN A2  //front 2
-#define INFRARED_R_OUT_PIN A3  //right
-
-//See Low Level for Command Definitions
 
  
-//Define Pins
+// Define Pins for motor drive
 int enableA = 6;
 int pinA1 = 8;
 int pinA2 = 7;
@@ -28,9 +24,9 @@ int enableB = 5;
 int pinB1 = 4;
 int pinB2 = 3;
 
-// servo param
-int pinServo = 9;
+// servo parameters/variables
 Servo servo1;
+int SERVO_PIN = 9;
 int degree = 0;
 int change = 10;
 
@@ -38,15 +34,19 @@ int change = 10;
 int distanceOnRight = 50;
 int distanceInFront = 50;
 int distanceOnLeft = 50;
-boolean backwardMode = false;
-int minDistance = 30;
-//int turnSpeed = 40;
-int forwardSpeed = 85;
 
-long servoFlag = 0;
+// variable to keep track of when the robot is going backward
+boolean backwardMode = false;
+
+// if distance on any direction is less than minDistance, robot will turn away
+int minDistance = 30;
+
+// motor speed
+int forwardSpeed = 85;
+//int turnSpeed = 40;
 
 void setup() {
- 
+ // set pinMode for motor driver
  pinMode(enableA, OUTPUT);
  pinMode(pinA1, OUTPUT);
  pinMode(pinA2, OUTPUT);
@@ -56,20 +56,22 @@ void setup() {
  pinMode(pinB2, OUTPUT);
 
  //Servo
- servo1.attach(pinServo); 
+ servo1.attach(SERVO_PIN);
+  
+ // setup baud rate for serial monitor connection
  Serial.begin(9600);
 
  Serial.println("Enable motors");
  enableMotors(forwardSpeed);
-
+ 
+ // scan and wait to check surroundings
  scanDelay(1000);
 }
  
 //command sequence
+// main control program
 void loop() {
-
-  //Serial.println(analogRead(INFRARED_OUT_PIN));
-
+  // backwardmode is needed because if the robot is going backward, the distance in front will increase and preventing a physical loop
   if (!backwardMode && distanceInFront > minDistance) {
     Serial.println("Forward ");
     forward();
@@ -77,32 +79,44 @@ void loop() {
     coast();
   } else if (distanceOnRight > minDistance) {
      Serial.println("TurnRight");
+
+     // brake to prevent robot from skidding when turning at high speed
      brake();
      scanDelay(50);
-    turnRight();
-    clearDistances(1);
-    scanDelay(100);
-    coast();
-    backwardMode = false;
+     turnRight();
+
+     // getting rid of distance information from direction not in effect after turning right
+     clearDistances(1);
+     scanDelay(100);
+     coast();
+     backwardMode = false;
     
   } else if (distanceOnLeft > minDistance) {
      Serial.println("TurnLeft");
+
+     // brake to prevent robot from skidding when turning at high speed
      brake();
      scanDelay(50);
-    turnLeft();
-    clearDistances(-1);
-    scanDelay(100);
-    coast();
-    backwardMode = false;
+     turnLeft();
+
+     // getting rid of distance information from direction not in effect after turning left
+     clearDistances(-1);
+     scanDelay(100);
+     coast();
+     backwardMode = false;
     
   } else {
      Serial.println("Backward");
+
+     // TODO: test and remove to find effects and determine if needed
      brake();
-    backward();
-    clearDistances(0);
-    scanDelay(100);
-    coast();
-    backwardMode = true;
+     backward();
+
+     // getting rid of distance information from direction not in effect after going backwards
+     clearDistances(0);
+     scanDelay(100);
+     coast();
+     backwardMode = true;
    
   }
   
@@ -112,16 +126,23 @@ void loop() {
  
 }
 
-void scanDelay(long milli) {
+/**
+ *  scan distance and wait in a loop until millisecond passes
+ */
+void scanDelay(long millisecond) {
   long i = 0;
-  while (i < milli) {
-    delay(50);
+  
+  while (i < millisecond) {
     detectObstacleDistance();
     detectWithInfrared();
+    delay(50);
     i = i + 50;
   }
 }
 
+/**
+ * Getting rid of distance information from direction not in effect after turning
+ */
 void clearDistances(int turnDirection) {
   if (turnDirection == -1) { // turn left
     distanceOnRight = distanceInFront;
@@ -139,26 +160,18 @@ void clearDistances(int turnDirection) {
 }
 // detect obstacle distance
 
-void detectWithInfrared() {
-  int infraredDistanceLeft = analogRead(INFRARED_L_OUT_PIN);
+void detectObstacleDistanceWithInfrared() {
   int infraredDistanceFront1 = analogRead(INFRARED_F1_OUT_PIN);
   int infraredDistanceFront2 = analogRead(INFRARED_F2_OUT_PIN);
-  int infraredDistanceRight = analogRead(INFRARED_R_OUT_PIN);
   if (infraredDistanceFront1 < 100) {
     distanceInFront = 3;
   }
   if (infraredDistanceFront2 < 100) {
     distanceInFront = 3;
   }
-  if (infraredDistanceLeft < 100) {
-    distanceOnLeft = 3;
-  }
-  if (infraredDistanceRight < 100) {
-    distanceOnRight = 3;
-  }
 }
   
-void detectObstacleDistance() {
+void detectObstacleDistanceWithUltrasonic() {
   
     degree = degree + change;
   if (degree >= 180) {
