@@ -133,8 +133,8 @@ void scanDelay(long millisecond) {
   long i = 0;
   
   while (i < millisecond) {
-    detectObstacleDistance();
-    detectWithInfrared();
+    detectObstacleDistanceWithUltrasonic();
+    detectObstacleDistanceWithInfrared();
     delay(50);
     i = i + 50;
   }
@@ -160,9 +160,12 @@ void clearDistances(int turnDirection) {
 }
 // detect obstacle distance
 
+// using infrared to detect objects
 void detectObstacleDistanceWithInfrared() {
   int infraredDistanceFront1 = analogRead(INFRARED_F1_OUT_PIN);
   int infraredDistanceFront2 = analogRead(INFRARED_F2_OUT_PIN);
+
+  // if infrared sensors sense anything less than 100 out of 1100(infrared analog output is between 0 and 1100), it will change the distance in front to be 3, causing the robot to turn
   if (infraredDistanceFront1 < 100) {
     distanceInFront = 3;
   }
@@ -170,9 +173,11 @@ void detectObstacleDistanceWithInfrared() {
     distanceInFront = 3;
   }
 }
-  
+
+// detecting with ultrasonic sensor
 void detectObstacleDistanceWithUltrasonic() {
-  
+
+    // turning servo to carry ultrasonic from 0 to 180 and back
     degree = degree + change;
   if (degree >= 180) {
     change = -change;
@@ -188,20 +193,32 @@ void detectObstacleDistanceWithUltrasonic() {
   Serial.print("Ping: ");
  int distance = sonar.ping_cm();
 
+  // if ultrasonic doesn't recieve signal back, then it will ignore that certain reading
   if (distance == 0) {
     distance = MAX_DISTANCE;
     return;
   }
   
+  // if ultrasonic senses something when the servo's degree is 60 or less, then it is considered to be on the right side
   if (degree < 60 ) {
+
+    // save the smallest value on the right
     if (distance < distanceOnRight) {
       distanceOnRight = distance;
     }
+    
+  // if ultrasonic senses something when the servo's degree is between 70 and 140, then it is considered to be in front
   } else if(degree >= 70 && degree < 140) {
+    
+    // save the smallest value on the right
     if (distance < distanceInFront) {
       distanceInFront = distance;
     }
+    
+  // if ultrasonic senses something when the servo's degree is 160 or more, then it is considered to be on the left side
   } else if(degree > 160)  {
+    
+    // save the smallest value on the right
       if (distance < distanceOnLeft) {
         distanceOnLeft = distance;
       }
