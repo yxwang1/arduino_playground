@@ -11,8 +11,8 @@
 NewPing sonar(ULTRASONIC_TRIGGER_PIN, ULTRASONIC_ECHO_PIN, MAX_DISTANCE); // NewPing setup of pins and maximum distance.
 
 //infrared params
-#define INFRARED_F1_OUT_PIN A1  //front 1
-#define INFRARED_F2_OUT_PIN A2  //front 2
+#define INFRARED_F1_OUT_PIN A0  //front 1
+#define INFRARED_F2_OUT_PIN A1  //front 2
 
  
 // Define Pins for motor drive
@@ -44,6 +44,11 @@ int minDistance = 30;
 // motor speed
 int forwardSpeed = 85;
 //int turnSpeed = 40;
+
+//specific distance clear
+int left = 180;
+int front = 70;
+int right = 0;
 
 void setup() {
  // set pinMode for motor driver
@@ -152,11 +157,24 @@ void clearDistances(int turnDirection) {
     distanceOnLeft = distanceInFront;
     distanceInFront = distanceOnRight;
     distanceOnRight = MAX_DISTANCE;
-  } else {
+  } else { //backwards
     distanceInFront = distanceInFront+2;
     distanceOnLeft = MAX_DISTANCE;
     distanceOnRight = MAX_DISTANCE;
   }
+}
+
+void clearDistancesInDirection(int clearDirection) {
+    if (clearDirection == left) {
+      distanceOnLeft = MAX_DISTANCE;
+    }
+    if (clearDirection == front) { 
+      distanceInFront = MAX_DISTANCE;
+    }
+    if (clearDirection == right) { 
+      distanceOnRight = MAX_DISTANCE;
+    }
+    
 }
 // detect obstacle distance
 
@@ -181,12 +199,16 @@ void detectObstacleDistanceWithUltrasonic() {
     degree = degree + change;
   if (degree >= 180) {
     change = -change;
-  
+    clearDistancesInDirection(left); // resets distances every sweep
   }
 
   if (degree <= 0) {
     change = -change;
-  
+    clearDistancesInDirection(right);
+  }
+
+  if (degree == 70 || degree == 140){
+    clearDistancesInDirection(front);
   }
 
   servo1.write(degree);  
