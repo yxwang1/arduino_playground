@@ -42,7 +42,7 @@ boolean backwardMode = false;
 int minDistance = 30;
 
 // motor speed
-int forwardSpeed = 85;
+int forwardSpeed = 90;
 //int turnSpeed = 40;
 
 void setup() {
@@ -181,12 +181,10 @@ void detectObstacleDistanceWithUltrasonic() {
     degree = degree + change;
   if (degree >= 180) {
     change = -change;
-  
   }
 
   if (degree <= 0) {
     change = -change;
-  
   }
 
   servo1.write(degree);  
@@ -200,7 +198,7 @@ void detectObstacleDistanceWithUltrasonic() {
   }
   
   // if ultrasonic senses something when the servo's degree is 60 or less, then it is considered to be on the right side
-  if (degree < 60 ) {
+  if (degree < 40 ) {
 
     // save the smallest value on the right
     if (distance < distanceOnRight) {
