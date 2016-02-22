@@ -93,7 +93,7 @@ void loop() {
      turnRight();
 
      // getting rid of distance information from direction not in effect after turning right
-     clearDistances(1);
+     shiftDistances(1);
      scanDelay(100);
      coast();
      backwardMode = false;
@@ -107,7 +107,7 @@ void loop() {
      turnLeft();
 
      // getting rid of distance information from direction not in effect after turning left
-     clearDistances(-1);
+     shiftDistances(-1);
      scanDelay(100);
      coast();
      backwardMode = false;
@@ -120,7 +120,7 @@ void loop() {
      backward();
 
      // getting rid of distance information from direction not in effect after going backwards
-     clearDistances(0);
+     shiftDistances(0);
      scanDelay(100);
      coast();
      backwardMode = true;
@@ -150,7 +150,7 @@ void scanDelay(long millisecond) {
 /**
  * Getting rid of distance information from direction not in effect after turning
  */
-void clearDistances(int turnDirection) {
+void shiftDistances(int turnDirection) {
   if (turnDirection == -1) { // turn left
     distanceOnRight = distanceInFront;
     distanceInFront = distanceOnLeft;
@@ -201,16 +201,19 @@ void detectObstacleDistanceWithUltrasonic() {
     degree = degree + change;
   if (degree >= 180) {
     change = -change;
+
     clearDistancesInDirection(left); // resets distances every sweep
   }
 
   if (degree <= 0) {
     change = -change;
+
     clearDistancesInDirection(right);
   }
 
   if (degree == 70 || degree == 130){
     clearDistancesInDirection(front);
+
   }
 
   servo1.write(degree);  
@@ -224,7 +227,7 @@ void detectObstacleDistanceWithUltrasonic() {
   }
   
   // if ultrasonic senses something when the servo's degree is 60 or less, then it is considered to be on the right side
-  if (degree < 60 ) {
+  if (degree < 40 ) {
 
     // save the smallest value on the right
     if (distance < distanceOnRight) {
