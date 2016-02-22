@@ -86,7 +86,7 @@ void loop() {
      turnRight();
 
      // getting rid of distance information from direction not in effect after turning right
-     clearDistances(1);
+     shiftDistances(1);
      scanDelay(100);
      coast();
      backwardMode = false;
@@ -100,7 +100,7 @@ void loop() {
      turnLeft();
 
      // getting rid of distance information from direction not in effect after turning left
-     clearDistances(-1);
+     shiftDistances(-1);
      scanDelay(100);
      coast();
      backwardMode = false;
@@ -113,7 +113,7 @@ void loop() {
      backward();
 
      // getting rid of distance information from direction not in effect after going backwards
-     clearDistances(0);
+     shiftDistances(0);
      scanDelay(100);
      coast();
      backwardMode = true;
@@ -143,7 +143,7 @@ void scanDelay(long millisecond) {
 /**
  * Getting rid of distance information from direction not in effect after turning
  */
-void clearDistances(int turnDirection) {
+void shiftDistances(int turnDirection) {
   if (turnDirection == -1) { // turn left
     distanceOnRight = distanceInFront;
     distanceInFront = distanceOnLeft;
